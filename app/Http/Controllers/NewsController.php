@@ -13,15 +13,10 @@ class NewsController extends Controller
 {
 public function index(Request $request)
 {
-    $query = News::with(['category', 'tags'])
+    $query = News::with(['category'])
         ->when($request->filled('category'), fn($q) =>
             $q->whereHas('category', fn($qq) =>
                 $qq->where('slug', $request->category)
-            )
-        )
-        ->when($request->filled('tag'), fn($q) =>
-            $q->whereHas('tags', fn($qq) =>
-                $qq->where('slug', $request->tag)
             )
         )
         ->when($request->filled('date'), fn($q) =>
@@ -77,28 +72,11 @@ public function search(Request $request)
 }
 public function home()
 {
-    $main = News::latest()->first();
-    $latest = News::latest()->skip(1)->take(2)->get();
-    $categories = Category::all();
+    $latest = News::latest()->take(3)->get();
 
-    // Загружаем новости по всем категориям одним запросом
-    $newsByCategory = News::with('category')
-        ->select('id', 'title', 'slug', 'image', 'created_at', 'reading_time', 'category_id')
-        ->latest()
-        ->get()
-        ->groupBy('category_id');
-
-    $byCategory = $categories->mapWithKeys(function ($category) use ($newsByCategory) {
-        return [
-            $category->name => $newsByCategory[$category->id]->take(3) ?? collect(),
-        ];
-    });
 
     return response()->json([
-        'main'       => $main,
         'latest'     => $latest,
-        'categories' => $categories,
-        'byCategory' => $byCategory,
     ]);
 }
 
@@ -110,8 +88,6 @@ public function store(Request $request)
         'category_id'  => 'required|exists:categories,id',
         'excerpt'      => 'required|string',
         'reading_time' => 'nullable|string',
-        'tags'         => 'nullable|array',
-        'tags.*'       => 'string|max:255',
         'image'        => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
     ]);
 
@@ -131,31 +107,17 @@ public function store(Request $request)
         'category_id'  => $validated['category_id'],
     ]);
 
-    // Работа с тегами
-    if (!empty($validated['tags'])) {
-        $tags = collect($validated['tags']);
 
-        $tagIds = $tags->every(fn($tag) => is_numeric($tag))
-            ? $tags // если ID — берём как есть
-            : $tags->map(fn($tag) =>
-                Tag::firstOrCreate(
-                    ['slug' => Str::slug($tag)],
-                    ['name' => $tag]
-                )->id
-            );
-
-        $news->tags()->sync($tagIds);
-    }
 
     return response()->json(
-        $news->load(['category', 'tags']),
+        $news->load(['category']),
         201
     );
 }
 
 public function show($slug)
 {
-    $news = News::with(['category', 'tags'])
+    $news = News::with(['category'])
         ->where('slug', $slug)
         ->firstOrFail();
 
@@ -184,7 +146,6 @@ public function show($slug)
         'created_at'   => $news->created_at,
         'category'     => $news->category?->name,
         'category_slug'=> $news->category?->slug,
-        'tags'         => $news->tags->pluck('name'),
         'related'      => $relatedNews,
     ]);
 }
@@ -217,16 +178,6 @@ public function show($slug)
             'category_id' => $request->category_id,
         ]);
 
-        if ($request->filled('tags')) {
-            $tagIds = collect($request->tags)->map(function ($tagName) {
-                $slug = Str::slug($tagName);
-                return Tag::firstOrCreate(
-                    ['slug' => $slug],
-                    ['name' => $tagName]
-                )->id;
-            });
-            $news->tags()->sync($tagIds);
-        }
 
         return response()->json($news->load(['category', 'tags']));
     }

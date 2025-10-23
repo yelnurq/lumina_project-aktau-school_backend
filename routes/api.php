@@ -27,7 +27,6 @@ Route::get('/news/{slug}', [NewsController::class, 'show']);
 Route::put('/news/{slug}', [NewsController::class, 'update']);
 Route::patch('/news/{slug}', [NewsController::class, 'update']);
 
-Route::get('/tags', [TagController::class, 'index']);
 
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::post('/categories', [CategoryController::class, 'store']);
@@ -57,7 +56,6 @@ Route::middleware(TokenCheck::class)->group(function () {
     Route::delete('/admin/news/{slug}', [NewsController::class, 'destroy']);
     Route::post('/news', [NewsController::class, 'store']);
     Route::get('/admin/categories', [CategoryController::class, 'admin']);
-    Route::get('/admin/tags', [TagController::class, 'admin']);
     Route::get('/admin/news/views', [NewsController::class, 'indexWithViews']);
 
 });
