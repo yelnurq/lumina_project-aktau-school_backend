@@ -5,15 +5,8 @@ use App\Http\Middleware\TokenCheck;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\DiplomaController;
-use App\Http\Controllers\EmailController;
-use App\Http\Controllers\OrderTicketController;
-use App\Http\Controllers\QuizController;
-use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\TagController;
 use App\Http\Controllers\TicketController;
 
-// Аутентификация для юзера
 Route::post("/login", [AuthController::class, "login"]);
 Route::post("/register", [AuthController::class, "register"]);
 Route::post('/logout', [AuthController::class, "logout"]);
@@ -34,19 +27,8 @@ Route::get('/categories/{slug}', [CategoryController::class, 'show']);
 Route::put('/categories/{slug}', [CategoryController::class, 'update']);
 Route::delete('/categories/{slug}', [CategoryController::class, 'destroy']);
 
-Route::get('/subjects', [SubjectController::class, 'index']);
-Route::get('/quiz', [QuizController::class, 'getQuestions']);
-Route::post('/quiz/submit', [QuizController::class, 'submitQuiz']);
-Route::post('/quiz/diploma', [QuizController::class, 'generateDiploma']);
-
-Route::get('/verify-diploma/{document_number}', [DiplomaController::class, 'verify']);
 
 Route::post('/ticket', [TicketController::class, 'store']);
-
-Route::post('/email', [EmailController::class, 'store']);
-
-
-Route::post('/orderticket', [OrderTicketController::class, 'store']);
 
 
 Route::middleware(TokenCheck::class)->group(function () {
