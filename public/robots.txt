@@ -1,0 +1,18 @@
+# robots.txt для Lumina.kz
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+# Разрешаем индексировать всё, кроме админки и личных страниц
+Disallow: /admin/
+Disallow: /login/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+
+# Кэш и служебные страницы
+Disallow: /api/
+Disallow: /private/
+Disallow: /temp/
+
+# Sitemap для ускоренной индексации
+Sitemap: https://lumina.kz/sitemap.xml
